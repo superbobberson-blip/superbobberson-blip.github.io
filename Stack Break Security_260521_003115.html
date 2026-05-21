@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stack Break Security | Elite Penetration Testing</title>
+<style>
+/* Base Styling & Theme Variables */
+:root {
+--bg-dark: #0a0f1d;
+--bg-card: #111827;
+--accent-cyan: #06b6d4;
+--accent-blue: #3b82f6;
+--text-main: #f3f4f6;
+--text-muted: #9ca3af;
+--border: #1f2937;
+}
+
+* {
+box-sizing: border-box;
+margin: 0;
+padding: 0;
+font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+
+body {
+background-color: var(--bg-dark);
+color: var(--text-main);
+line-height: 1.6;
+overflow-x: hidden;
+}
+
+/* Navigation Header */
+header {
+position: fixed;
+top: 0;
+left: 0;
+width: 100%;
+background-color: rgba(10, 15, 29, 0.9);
+backdrop-filter: blur(12px);
+border-bottom: 1px solid var(--border);
+z-index: 1000;
+}
+
+.nav-container {
+max-width: 1200px;
+margin: 0 auto;
+padding: 1.25rem 2rem;
+display: flex;
+justify-content: space-between;
+align-items: center;
+}
+
+.logo {
+font-size: 1.5rem;
+font-weight: 700;
+letter-spacing: -0.05em;
+color: var(--text-main);
+display: flex;
+align-items: center;
+gap: 0.5rem;
+}
+
+.logo span {
+color: var(--accent-cyan);
+}
+
+nav ul {
+display: flex;
+list-style: none;
+gap: 2rem;
+}
+
+nav a {
+color: var(--text-muted);
+text-decoration: none;
+font-weight: 500;
+font-size: 0.95rem;
+transition: color 0.2s ease;
+}
+
+nav a:hover {
+color: var(--accent-cyan);
+}
+
+/* Hero Section */
+.hero {
+padding: 12rem 2rem 8rem 2rem;
+max-width: 1200px;
+margin: 0 auto;
+text-align: center;
+position: relative;
+}
+
+.hero h1 {
+font-size: 3.5rem;
+font-weight: 800;
+line-height: 1.15;
+margin-bottom: 1.5rem;
+letter-spacing: -0.03em;
+}
+
+.hero h1 span {
+background: linear-gradient(to right, var(--accent-cyan), var(--accent-blue));
+-webkit-background-clip: text;
+-webkit-text-fill-color: transparent;
+}
+
+.hero p {
+font-size: 1.25rem;
+color: var(--text-muted);
+max-width: 700px;
+margin: 0 auto 2.5rem auto;
+}
+
+.cta-btn {
+background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
+color: #fff;
+padding: 0.85rem 2rem;
+font-size: 1rem;
+font-weight: 600;
+border: none;
+border-radius: 6px;
+cursor: pointer;
+text-decoration: none;
+transition: opacity 0.2s ease, transform 0.2s ease;
+display: inline-block;
+}
+
+.cta-btn:hover {
+opacity: 0.95;
+transform: translateY(-1px);
+}
+
+/* Content Sections Global */
+section {
+padding: 6rem 2rem;
+max-width: 1200px;
+margin: 0 auto;
+}
+
+.section-title {
+text-align: center;
+margin-bottom: 4rem;
+}
+
+.section-title h2 {
+font-size: 2.25rem;
+font-weight: 700;
+margin-bottom: 0.5rem;
+}
+
+.section-title p {
+color: var(--text-muted);
+}
+
+/* Services Grid Architecture */
+.services-grid {
+display: grid;
+grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+gap: 2rem;
+}
+
+.service-card {
+background-color: var(--bg-card);
+border: 1px solid var(--border);
+padding: 2.5rem;
+border-radius: 8px;
+cursor: pointer;
+transition: border-color 0.3s ease, transform 0.3s ease;
+}
+
+.service-card:hover {
+border-color: var(--accent-cyan);
+transform: translateY(-4px);
+}
+
+.service-icon {
+font-size: 2rem;
+color: var(--accent-cyan);
+margin-bottom: 1.5rem;
+}
+
+.service-card h3 {
+font-size: 1.35rem;
+margin-bottom: 1rem;
+font-weight: 600;
+}
+
+.service-card p {
+color: var(--text-muted);
+font-size: 0.95rem;
+}
+
+/* Interactive Detail Display Area */
+.interactive-display {
+margin-top: 3rem;
+background-color: var(--bg-card);
+border: 1px solid var(--accent-cyan);
+border-radius: 8px;
+padding: 2.5rem;
+display: none;
+animation: fadeIn 0.4s ease forwards;
+}
+
+.interactive-display h4 {
+color: var(--accent-cyan);
+font-size: 1.5rem;
+margin-bottom: 1rem;
+}
+
+/* Contact Form Layout */
+.contact-container {
+max-width: 600px;
+margin: 0 auto;
+background-color: var(--bg-card);
+border: 1px solid var(--border);
+padding: 3rem;
+border-radius: 8px;
+}
+
+.form-group {
+margin-bottom: 1.5rem;
+}
+
+.form-group label {
+display: block;
+font-size: 0.85rem;
+font-weight: 600;
+margin-bottom: 0.5rem;
+text-transform: uppercase;
+letter-spacing: 0.05em;
+color: var(--text-muted);
+}
+
+.form-group input, .form-group textarea {
+width: 100%;
+background-color: var(--bg-dark);
+border: 1px solid var(--border);
+padding: 0.75rem 1rem;
+color: var(--text-main);
+font-size: 1rem;
+border-radius: 4px;
+transition: border-color 0.2s ease;
+}
+
+.form-group input:focus, .form-group textarea:focus {
+outline: none;
+border-color: var(--accent-cyan);
+}
+
+.submit-btn {
+width: 100%;
+background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
+color: #fff;
+padding: 1rem;
+font-size: 1rem;
+font-weight: 600;
+border: none;
+border-radius: 4px;
+cursor: pointer;
+transition: opacity 0.2s ease;
+}
+
+.submit-btn:hover {
+opacity: 0.95;
+}
+
+/* Footer */
+footer {
+border-top: 1px solid var(--border);
+padding: 3rem 2rem;
+text-align: center;
+color: var(--text-muted);
+font-size: 0.9rem;
+}
+
+/* Keyframe Animations */
+@keyframes fadeIn {
+from { opacity: 0; transform: translateY(10px); }
+to { opacity: 1; transform: translateY(0); }
+}
+
+/* Mobile Breakpoints */
+@media (max-width: 768px) {
+.nav-container { flex-direction: column; gap: 1rem; text-align: center; }
+.hero h1 { font-size: 2.5rem; }
+section { padding: 4rem 1.5rem; }
+.contact-container { padding: 2rem; }
+}
+</style>
+</head>
+<body>
+
+<header>
+<div class="nav-container">
+<div class="logo">STACK<span>_BREAK</span></div>
+<nav>
+<ul>
+<li><a href="#hero">Home</a></li>
+<li><a href="#services">Services</a></li>
+<li><a href="#contact">Contact</a></li>
+</ul>
+</nav>
+</div>
+</header>
+
+<section id="hero" class="hero">
+<h1>We Break Systems To <span>Secure Your Stack</span></h1>
+<p>Proactive defensive intelligence through advanced adversarial emulation. We identify critical zero-day vulnerabilities before malicious actors can exploit them.</p>
+<a href="#contact" class="cta-btn">Secure Your Infrastructure</a>
+</section>
+
+<section id="services">
+<div class="section-title">
+<h2>Our Defensive Capabilities</h2>
+<p>Click on a capability card to view our technical evaluation metrics.</p>
+</div>
+
+<div class="services-grid">
+<div class="service-card" onclick="revealDetails('web')">
+<div class="service-icon">🌐</div>
+<h3>Web Application Penetration Testing</h3>
+<p>Comprehensive assessment targeting logical flaws, injection vulnerabilities, and API authentication breakdowns across modern web architectures.</p>
+</div>
+<div class="service-card" onclick="revealDetails('infra')">
+<div class="service-icon">🖥️</div>
+<h3>Network Infrastructure Auditing</h3>
+<p>Internal and external perimeter validation testing for configuration vulnerabilities, outdated patch states, and privilege escalation vulnerabilities.</p>
+</div>
+<div class="service-card" onclick="revealDetails('cloud')">
+<div class="service-icon">☁️</div>
+<h3>Cloud Environment Security</h3>
+<p>Deep-dive assessments focusing on IAM misconfigurations, open storage buckets, and container isolation escapes within AWS, Azure, and GCP architectures.</p>
+</div>
+</div>
+
+<div id="detail-display" class="interactive-display">
+<h4 id="detail-title">Capability Highlight</h4>
+<p id="detail-desc">Detailed scope data will display here.</p>
+</div>
+</section>
+
+<section id="contact">
+<div class="section-title">
+<h2>Initialize An Assessment</h2>
+<p>Connect with an elite technical security engineer to coordinate a scoping engagement by filling out the form below or calling (763)303-0214.</p>
+</div>
+
+<div class="contact-container">
+<form action="https://formspree.io/f/xojbezoq" method="POST">
+<div class="form-group">
+<label for="orgName">Organization Name</label>
+<input type="text" id="orgName" name="Organization Name" required autocomplete="off">
+</div>
+<div class="form-group">
+<label for="contactEmail">Corporate Email</label>
+<input type="email" id="contactEmail" name="Email" required autocomplete="off">
+</div>
+<div class="form-group">
+<label for="scopeDetails">Scope & Objectives</label>
+<textarea id="scopeDetails" name="Scope Details" rows="5" placeholder="Describe the target infrastructure, architecture, and testing timelines..." required></textarea>
+</div>
+<button type="submit" class="submit-btn">Transmit Scoping Request</button>
+</form>
+</div>
+</section>
+
+<footer>
+<p>© 2026 Stack Break Security. All adversarial activities conducted under strict authorization protocols.</p>
+</footer>
+
+<script>
+// Interactive Service Panels Data Matrix
+const technicalScopeData = {
+web: {
+title: "Web Application Pentesting Matrix",
+desc: "Our assessments map strictly to the OWASP Top 10 framework. Scope inclusions: Server-Side Request Forgery (SSRF), broken object-level authentication, cryptographic weaknesses, and deep-dive JSON Web Token (JWT) manipulation validation."
+},
+infra: {
+title: "Network Perimeter Exploitation Scope",
+desc: "We perform real-world attack vectors, including Active Directory certificate service attacks, lateral movement simulations, password spraying, and custom perimeter vulnerability exploitation to verify your network boundaries."
+},
+cloud: {
+title: "Cloud Infrastructure Configuration Audits",
+desc: "Automated and manual reviews of cloud plane policies. We assess identity control boundaries, verify Kubernetes/Docker namespace separation architectures, and audit configurations against CIS Benchmarks."
+}
+};
+
+// Function to dynamically swap out content blocks on click
+function revealDetails(capabilityKey) {
+const displayBox = document.getElementById('detail-display');
+const titleField = document.getElementById('detail-title');
+const descField = document.getElementById('detail-desc');
+
+const selectedData = technicalScopeData[capabilityKey];
+
+if (selectedData) {
+titleField.textContent = selectedData.title;
+descField.textContent = selectedData.desc;
+
+displayBox.style.display = 'none';
+void displayBox.offsetWidth;
+displayBox.style.display = 'block';
+}
+}
+</script>
+</body>
+</html>
